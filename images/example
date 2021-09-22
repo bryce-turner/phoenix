@@ -1,1 +1,150 @@
-<mxfile host="app.diagrams.net" modified="2021-09-22T21:20:29.172Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.134 Safari/537.36" version="15.2.9" etag="mA193WNRPZlnGRNVSX5O" type="github"><diagram id="0YedQBT4aBZwTnkhAqwa">UzV2zq1wL0osyPDNT0nNUTV2VTV2LsrPL4GwciucU3NyVI0MMlNUjV1UjYwMgFjVyA2HrCFY1qAgsSg1rwSLBiADYTaQg2Y1AA==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2021-09-22T21:22:52.784Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.134 Safari/537.36" etag="k97l6FZgYiJsvGQQjXV4" version="15.2.9" type="github">
+  <diagram id="0YedQBT4aBZwTnkhAqwa" name="Page-1">
+    <mxGraphModel dx="839" dy="1307" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="giB2SthPpe0WVNZOgA18-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="giB2SthPpe0WVNZOgA18-2" target="giB2SthPpe0WVNZOgA18-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-2" value="normal_bam" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="130" y="537" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="giB2SthPpe0WVNZOgA18-4" target="giB2SthPpe0WVNZOgA18-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-4" value="tumor_bam" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="130" y="580" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-5" value="lancet" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;direction=east;" vertex="1" parent="1">
+          <mxGeometry x="280" y="383" width="200" height="234" as="geometry">
+            <mxRectangle x="270" y="344" width="90" height="26" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-6" value="lancet" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="giB2SthPpe0WVNZOgA18-5">
+          <mxGeometry y="26" width="200" height="208" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-7" value="--max-vaf-normal 0.05" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-6">
+          <mxGeometry y="26" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-8" value="--max-alt-count-normal 50" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-6">
+          <mxGeometry y="52" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-9" value="--bed &quot;{{ temp_dir }}/{{ loop.index }}.bed&quot;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-6">
+          <mxGeometry y="78" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-10" value="--ref &quot;{{ constants.phoenix.reference_fasta }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-6">
+          <mxGeometry y="104" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-11" value="--normal &quot;{{ normal_bam }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-6">
+          <mxGeometry y="130" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-12" value="--tumor &quot;{{ tumor_bam }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-6">
+          <mxGeometry y="156" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-13" value="&gt; &quot;{{ temp_dir }}/{{ loop.index }}.lancet-uns.vcf&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-6">
+          <mxGeometry y="182" width="200" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-14" value="lancet_merge_chunks" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;direction=east;" vertex="1" parent="1">
+          <mxGeometry x="560" y="344" width="210" height="338" as="geometry">
+            <mxRectangle x="270" y="344" width="90" height="26" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-15" value="bcftools concat" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="giB2SthPpe0WVNZOgA18-14">
+          <mxGeometry y="26" width="210" height="312" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-16" value="--output-type z" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-15">
+          <mxGeometry y="26" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=none;startFill=0;endArrow=classic;endFill=1;" edge="1" parent="giB2SthPpe0WVNZOgA18-15" source="giB2SthPpe0WVNZOgA18-18" target="giB2SthPpe0WVNZOgA18-24">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="230" y="65" />
+              <mxPoint x="230" y="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-18" value="--output &quot;{{ temp_dir }}/{{ pair.name }}.{{ aligner }}.lancet.all.uns.vcf.gz&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-15">
+          <mxGeometry y="52" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-19" value="&quot;{{ temp_dir }}/{{ loop.index }}.lancet.vcf&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-15">
+          <mxGeometry y="78" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-20" value="bcftools sort" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="giB2SthPpe0WVNZOgA18-15">
+          <mxGeometry y="104" width="210" height="208" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-21" value="--output-type z" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-20">
+          <mxGeometry y="26" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=none;startFill=0;endArrow=classic;endFill=1;" edge="1" parent="giB2SthPpe0WVNZOgA18-20" source="giB2SthPpe0WVNZOgA18-23" target="giB2SthPpe0WVNZOgA18-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-23" value="--output-file &quot;{{ all_vcf }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-20">
+          <mxGeometry y="52" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-24" value="&quot;{{ temp_dir }}/{{ pair.name }}.{{ aligner }}.lancet.all.uns.vcf.gz&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-20">
+          <mxGeometry y="78" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-25" value="bcftools index" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="giB2SthPpe0WVNZOgA18-20">
+          <mxGeometry y="104" width="210" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-26" value="--tbi" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-25">
+          <mxGeometry y="26" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-27" value="--force" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-25">
+          <mxGeometry y="52" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-28" value="&quot;{{ all_vcf }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-25">
+          <mxGeometry y="78" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-29" value="lancet_filter_variants" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;direction=east;" vertex="1" parent="1">
+          <mxGeometry x="910" y="396" width="210" height="286" as="geometry">
+            <mxRectangle x="270" y="344" width="90" height="26" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-30" value="bcftools filter" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="giB2SthPpe0WVNZOgA18-29">
+          <mxGeometry y="26" width="210" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-31" value="--output-type z" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-30">
+          <mxGeometry y="26" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-32" value="--include &#39;FILTER == &quot;PASS&quot;&#39;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-30">
+          <mxGeometry y="52" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-33" value="--targets-file &quot;{{ pair.tumor.capture_kit.extended_bed }}&quot;" style="text;fillColor=#f5f5f5;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="giB2SthPpe0WVNZOgA18-30">
+          <mxGeometry y="78" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-34" value="&quot;{{ all_vcf }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-30">
+          <mxGeometry y="104" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-35" value="&gt; &quot;{{ pass_vcf }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-30">
+          <mxGeometry y="130" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-36" value="bcftools index" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=none;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;" vertex="1" parent="giB2SthPpe0WVNZOgA18-30">
+          <mxGeometry y="156" width="210" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-37" value="--tbi" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-36">
+          <mxGeometry y="26" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-38" value="--force" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-36">
+          <mxGeometry y="52" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-39" value="&quot;{{ pass_vcf }}&quot;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" vertex="1" parent="giB2SthPpe0WVNZOgA18-36">
+          <mxGeometry y="78" width="210" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=none;startFill=0;endArrow=classic;endFill=1;" edge="1" parent="1" source="giB2SthPpe0WVNZOgA18-23" target="giB2SthPpe0WVNZOgA18-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="giB2SthPpe0WVNZOgA18-42" target="giB2SthPpe0WVNZOgA18-33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-42" value="if exome" style="text;html=1;strokeColor=#666666;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="800" y="503" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="giB2SthPpe0WVNZOgA18-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=ERmany;endFill=0;startArrow=ERmany;startFill=0;" edge="1" parent="1" source="giB2SthPpe0WVNZOgA18-13" target="giB2SthPpe0WVNZOgA18-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
