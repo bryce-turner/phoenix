@@ -241,7 +241,7 @@
     {% endfor %}
   output:
     - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
-    - {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup.txt
+    - {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt
   walltime: "48:00:00"
   cpus: 8
   mem: 16G
@@ -284,7 +284,7 @@
       "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam.samtools.markdup.txt"
       {%- endfor %}
       | head -n -1 | tail -n +2 | sed 's/\t[a-zA-Z :_]\+/+/g' | awk '{ print $NF }' | bc \
-      > {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup_merge.txt
+      > {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.merge.txt
 
     paste \
       {% for rgid in sample.read_groups %}
@@ -292,19 +292,19 @@
       {%- endfor %}
       | tail -n1 | sed 's/\t[a-zA-Z :_]\+/\ /g' | cut -d' ' -f2- |\
       awk '{m=$1;for(i=1;i<=NF;i++)if($i>m)m=$i;print m}' \
-      >> {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup_merge.txt
+      >> {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup_merge.txt
 
 
     {# Combining the summed values with their naming #}
     tail -n +2 {{ temp_dir }}/stats/{{ sample.name }}_{{ first_sample_rgid }}.{{ aligner }}.bam.samtools.markdup.txt |\
       cut -d':' -f1 |\
-      paste - {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup_merge.txt |\
+      paste - {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup_merge.txt |\
       sed 's/\t/: /g' \
-      > {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup.txt
+      > {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt
 
     {# insert COMMAND: into the top of the merged file #}
     header=$(head -n 1 {{ temp_dir }}/stats/{{ sample.name }}_{{ first_sample_rgid }}.{{ aligner }}.bam.samtools.markdup.txt)
-    sed -i "1i ${header}" {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup.txt
+    sed -i "1i ${header}" {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt
 
 
 {% if sample.gltype == 'genome' %}
