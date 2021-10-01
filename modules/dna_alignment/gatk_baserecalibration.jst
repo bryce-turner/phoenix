@@ -1,7 +1,7 @@
 {% from 'utilities/remove_files.jst' import remove_files with context %}
 # This macro adds tasks for running GATK BaseRecalibrator on the output
 # from markdups.
-{% macro baserecalibration(sample, aligner='bwa') %}
+{% macro baserecalibration(sample, aligner) %}
 
 {% for batch in constants.phoenix.sequence_groupings %}
 - name: baserecalibration_table_{{ sample.name }}_{{ aligner }}_{{ loop.index }}
@@ -132,7 +132,7 @@
 
 
 {# Moves the markduplicates bam without doing baserecalibration #}
-{% macro nobaserecalibration(sample, aligner='bwa') %}
+{% macro nobaserecalibration(sample, aligner) %}
 - name: no_baserecalibration_{{ sample.name }}_{{ aligner }}
   tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, {{ sample.name }}]
   reset: predecessors

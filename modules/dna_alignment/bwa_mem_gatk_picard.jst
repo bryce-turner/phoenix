@@ -7,10 +7,18 @@
 #
 # This alignment command prefix is shared by all modules using bwa
 {% from 'utilities/read_group_line.jst' import read_group_line %}
+{% from 'modules/dna_alignment/gatk_baserecalibration.jst' import baserecalibration, nobaserecalibration with context %}
+{% from 'utilities/bam_to_cram.jst' import bam_to_cram with context %}
+{% from 'utilities/read_group_line.jst' import read_group_line %}
+{% from 'modules/qc/main.jst' import bam_qc with context %}
 
 # This macro splits large fastqs into chunks prior to aligning.
 # If fastq is less than reads_per_chunk (48000000) then one chunk is made.
-{% macro bwa_mem_gatk_picard_chunked(sample, reads_per_chunk, opt_dup_distance) %}
+{% macro bwa_mem_gatk_picard_chunked(sample, reads_per_chunk, opt_dup_distance, aligner) %}
+
+{% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
+{% set results_dir %}{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
+
 {% for rgid, rg in sample.read_groups.items() %}
 {% set r1fastq = rg.data_files|selectattr('fastqCode', 'eq', 'R1')|first %}
 {% set r2fastq = rg.data_files|selectattr('fastqCode', 'eq', 'R2')|first %}
@@ -42,8 +50,8 @@
     {#
       This comment is here for protect render spacing, do not remove.
     #}
-    rm -r "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/" || true
-    mkdir -p "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/"
+    rm -r "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/" || true
+    mkdir -p "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/"
 
     zcat "temp/fastqs/{{ fastq.basename }}" |\
       split \
@@ -51,9 +59,9 @@
         --suffix-length 2 \
         -l {{ n_lines }} \
         - \
-        "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/"
+        "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/"
 
-    N_CREATED=$(ls "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/" | wc -l)
+    N_CREATED=$(ls "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/" | wc -l)
 
     if [[ ${N_CREATED} -ne {{ n_chunks }} ]]
     then
@@ -100,11 +108,11 @@
       -t 9 \
       -R "{{ read_group_line(rg) }}" \
       "{{ constants.phoenix.bwa_index }}" \
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ r1fastq.basename }}/{{ chunk_suffix }}" \
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ r2fastq.basename }}/{{ chunk_suffix }}" |\
+      "{{ temp_dir }}/{{ rgid }}/{{ r1fastq.basename }}/{{ chunk_suffix }}" \
+      "{{ temp_dir }}/{{ rgid }}/{{ r2fastq.basename }}/{{ chunk_suffix }}" |\
     samtools view \
       --output-fmt BAM \
-      -o "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
       -
 
 {% endfor %}
@@ -122,7 +130,7 @@
     set -o pipefail
     module load {{ constants.tools.gatk.module }}
 
-    mkdir -p "{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/stats/"
+    mkdir -p "{{ results_dir }}/stats/"
 
     gatk MarkDuplicates \
       --java-options "-Xmx28G" \
@@ -134,16 +142,16 @@
     {% for rgid, rg in sample.read_groups.items() %}
     {% for i in range(rg['n_chunks']) %}
     {% set chunk_suffix = '%02d' % i %}
-      --INPUT "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      --INPUT "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
     {% endfor %}
     {% endfor %}
-      --METRICS_FILE "{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/stats/{{ sample.name }}.mdmetrics.txt" \
-      --OUTPUT "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md-uns.bam"
+      --METRICS_FILE "{{ results_dir }}/stats/{{ sample.name }}.mdmetrics.txt" \
+      --OUTPUT "{{ temp_dir }}/{{ sample.name }}.bwa.md-uns.bam"
 
     {# Cleanup the tempfiles #}
     {% if not debug %}
     {% for rgid in sample.read_groups %}
-    rm -r "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/"
+    rm -r "{{ temp_dir }}/{{ rgid }}/"
     {% endfor %}
     {% endif %}
 
@@ -152,7 +160,7 @@
   tags: [{{ sample.gltype }}, alignment, SortSam, gatk, {{ sample.name }}]
   reset: predecessors
   after: chunked_gatk_picard_markduplicates_{{ sample.name }}
-  output: temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md.bam
+  output: {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
   walltime: "48:00:00"
   cpus: 16
   mem: 64G
@@ -169,12 +177,31 @@
       --CREATE_INDEX true \
       --CREATE_MD5_FILE true \
       --MAX_RECORDS_IN_RAM 300000 \
-      --INPUT "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md-uns.bam" \
-      --OUTPUT "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md.bam"
+      --INPUT "{{ temp_dir }}/{{ sample.name }}.bwa.md-uns.bam" \
+      --OUTPUT "{{ temp_dir }}/{{ sample.name }}.bwa.md.bam"
 
     {# Cleanup the tempfiles #}
     {% if not debug %}
-    rm "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md-uns.bam"
+    rm "{{ temp_dir }}/{{ sample.name }}.bwa.md-uns.bam"
     {% endif %}
+
+{% if sample.gltype == 'genome' %}
+  {# shorten to tasks.Genome_alignment_base_recalibration_gatk|default(false) #}
+  {% if tasks.Genome_alignment_base_recalibration_gatk is defined and tasks.Genome_alignment_base_recalibration_gatk %}
+    {{- baserecalibration(sample, aligner) }}
+  {% else %}
+    {{- nobaserecalibration(sample, aligner) }}
+  {% endif %}
+{% elif sample.gltype == 'exome' %}
+  {% if tasks.Exome_alignment_base_recalibration_gatk is defined and tasks.Exome_alignment_base_recalibration_gatk %}
+    {{- baserecalibration(sample, aligner) }}
+  {% else %}
+    {{- nobaserecalibration(sample, aligner) }}
+  {% endif %}
+{% endif %}
+
+{{- bam_to_cram(sample, aligner) }}
+
+{{- bam_qc(sample, aligner) }}
 
 {% endmacro %}

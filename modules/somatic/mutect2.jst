@@ -98,7 +98,7 @@
     {# Normal pileups #}
     gatk --java-options "-Xmx7g" GetPileupSummaries \
       --tmp-dir {{ temp_dir }}/temp_GetPileupSummaries_normal_{{ loop.index }}/ \
-      -reference {{ constants.phoenix.reference_fasta }} \
+      --reference {{ constants.phoenix.reference_fasta }} \
       --input "{{ normal_bam }}" \
       --interval-set-rule UNION \
       {% for interval in batch %}

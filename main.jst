@@ -1,34 +1,3 @@
-# Phoenix Human GRCh38 pipeline
-#
-# The config variables includes an array of dataFiles. Here we
-# need to group the data files into read groups, and then group 
-# read_groups into samples. This will make it easier to add tasks
-# later in the pipeline. The resulting samples dict will look
-# like this:
-# 
-# sampleMergeKey/sampleName:
-#   glPrep: RNA
-#   glType: RNA
-#       ... 
-#   read_groups: 
-#     C140KACXX_7_TAGCTT:
-#       glPrep: RNA
-#       glType: RNA
-#           ...
-#       data_files: 
-#         - 
-#           fastqPath: .../MMRF_1157_1_BM_CD138pos_T2_TSMRU_K03096_C140KACXX_TAGCTT_L007_R1_001.fastq.gz
-#           fastqCode: R1
-#           glPrep: RNA
-#           glType: RNA
-#               ...
-#         - 
-#           fastqPath: .../MMRF_1157_1_BM_CD138pos_T2_TSMRU_K03096_C140KACXX_TAGCTT_L007_R2_001.fastq.gz
-#           fastqCode: R2
-#           glPrep: RNA
-#           glType: RNA
-#               ...
-
 {# Setting debug to True retains many of the intermediate files #}
 {% if debug is not defined %}
     {% set debug = False %}
@@ -154,6 +123,7 @@
 
 {{- constitutional_variant_calling(samples) }}
 
+{#
 {{- somatic_variant_calling(samples) }}
 
 {{- rna_quant(samples) }}
@@ -165,3 +135,4 @@
 {{- chip_workflow(samples) }}
 
 {{- tumor_only_variant_calling(samples) }}
+#}

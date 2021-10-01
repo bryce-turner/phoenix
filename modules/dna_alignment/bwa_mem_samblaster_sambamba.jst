@@ -8,10 +8,17 @@
 
 # This alignment command prefix is shared by all modules using bwa
 {% from 'utilities/read_group_line.jst' import read_group_line %}
+{% from 'modules/dna_alignment/gatk_baserecalibration.jst' import baserecalibration, nobaserecalibration with context %}
+{% from 'utilities/bam_to_cram.jst' import bam_to_cram with context %}
+{% from 'utilities/read_group_line.jst' import read_group_line %}
+{% from 'modules/qc/main.jst' import bam_qc with context %}
 
 # Replicating the exact workflow from Ashion into jst format
 
-{% macro bwa_mem_blaster_bamba(sample) %}
+{% macro bwa_mem_blaster_bamba(sample, aligner) %}
+
+{% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
+{% set results_dir %}{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 
 {% set r_flag %}@RG\\tID:{{ sample.rglb }}\\tSM:{{ sample.rgsm|default(sample.name) }}\\tLB:{{ sample.rglb }}\\tPL:ILLUMINA\\tCN:TGen{% endset %}
 {% set fastqs_to_depend = [] %}
@@ -43,8 +50,8 @@
     - {{ fastq }}
   {% endfor %}
   output:
-    - temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
-    - temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
+    - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
+    - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
   walltime: "24:00:00"
   cpus: 1
   mem: 2G
@@ -52,19 +59,19 @@
     set -eu
     set -o pipefail
 
-    mkdir -p "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/temp"
+    mkdir -p "{{ temp_dir }}/{{ sample.rglb }}/temp"
 
-    cat {{ r1fastqs|join(' ') }} > temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
-    cat {{ r2fastqs|join(' ') }} > temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
+    cat {{ r1fastqs|join(' ') }} > {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
+    cat {{ r2fastqs|join(' ') }} > {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
 
 
 - name: bwa_mem_samblaster_sambamba_{{ sample.name }}
   tags: [{{ sample.gltype }}, alignment, dna_alignment, mark_duplicates, bwa, samblaster, sambamba, {{ sample.name }}]
   reset: predecessors
   input:
-    - temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
-    - temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
-  output: temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md.bam
+    - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
+    - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
+  output: {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
   walltime: "48:00:00"
   cpus: 10
   mem: 40G
@@ -93,8 +100,8 @@
       -t 9 \
       -R "{{ r_flag }}" \
       "{{ constants.phoenix.bwa_index }}" \
-      temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz \
-      temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz |\
+      {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz \
+      {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz |\
     samblaster |\
     sambamba view \
       --format bam \
@@ -103,9 +110,27 @@
     sambamba sort \
       --memory-limit 20GB \
       --nthreads 9 \
-      --tmpdir "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.rglb }}/temp/" \
+      --tmpdir "{{ temp_dir }}/{{ sample.rglb }}/temp/" \
       /dev/stdin \
-      --out "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md.bam"
+      --out "{{ temp_dir }}/{{ sample.name }}.bwa.md.bam"
 
+{% if sample.gltype == 'genome' %}
+  {# shorten to tasks.Genome_alignment_base_recalibration_gatk|default(false) #}
+  {% if tasks.Genome_alignment_base_recalibration_gatk is defined and tasks.Genome_alignment_base_recalibration_gatk %}
+    {{- baserecalibration(sample, aligner) }}
+  {% else %}
+    {{- nobaserecalibration(sample, aligner) }}
+  {% endif %}
+{% elif sample.gltype == 'exome' %}
+  {% if tasks.Exome_alignment_base_recalibration_gatk is defined and tasks.Exome_alignment_base_recalibration_gatk %}
+    {{- baserecalibration(sample, aligner) }}
+  {% else %}
+    {{- nobaserecalibration(sample, aligner) }}
+  {% endif %}
+{% endif %}
+
+{{- bam_to_cram(sample, aligner) }}
+
+{{- bam_qc(sample, aligner) }}
 
 {% endmacro %}
