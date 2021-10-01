@@ -18,7 +18,7 @@
 {% macro bwa_mem_blaster_bamba(sample, aligner) %}
 
 {% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
-{% set results_dir %}{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
+{% set results_dir %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 
 {% set r_flag %}@RG\\tID:{{ sample.rglb }}\\tSM:{{ sample.rgsm|default(sample.name) }}\\tLB:{{ sample.rglb }}\\tPL:ILLUMINA\\tCN:TGen{% endset %}
 {% set fastqs_to_depend = [] %}

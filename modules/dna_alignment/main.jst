@@ -30,7 +30,7 @@
 
   {% for sample in samples.values() if sample.gltype in ['genome', 'exome'] %}
 
-    {% set alignment_style = {} %}
+    {% set alignment_style = [] %}
     {% if dnaAlignmentStyle == 'all' %}
       {% do alignment_style.append('pcrfree') %}
       {% do alignment_style.append('tgen') %}
@@ -48,15 +48,17 @@
     {% endif %}
 
     {# PCRfree will not have any pcr cycles #}
-      {% if 'pcrfree' in alignment_style %}
-        {{- bwa_mem2_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='pcrfree') }}
-      {% if 'tgen' in alignment_style %}
-        {{- bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='tgen') }}
-      {% if 'broad' in alignment_style %}
-        {{- bwa_mem_gatk_picard_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='broad') }}
-      {% if 'ashion' in alignment_style %}
-        {{- bwa_mem_blaster_bamba(sample, aligner='ashion') }}
-      {% endif %}
+    {% if 'pcrfree' in alignment_style %}
+      {{- bwa_mem2_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='pcrfree') }}
+    {% endif %}
+    {% if 'tgen' in alignment_style %}
+      {{- bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='tgen') }}
+    {% endif %}
+    {% if 'broad' in alignment_style %}
+      {{- bwa_mem_gatk_picard_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='broad') }}
+    {% endif %}
+    {% if 'ashion' in alignment_style %}
+      {{- bwa_mem_blaster_bamba(sample, aligner='ashion') }}
     {% endif %}
 
   {% endfor %}

@@ -15,7 +15,7 @@
 
 {%- macro constitutional_variant_calling(samples) %}
 
-{% set alignment_style = {} %}
+{% set alignment_style = [] %}
 {% if dnaAlignmentStyle == 'all' %}
   {% do alignment_style.append('pcrfree') %}
   {% do alignment_style.append('tgen') %}

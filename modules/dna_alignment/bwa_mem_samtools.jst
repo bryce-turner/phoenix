@@ -19,7 +19,7 @@
 {% macro bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner) %}
 
 {% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
-{% set results_dir %}{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
+{% set results_dir %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 
 {% for rgid, rg in sample.read_groups.items() %}
 {% set r1fastq = rg.data_files|selectattr('fastqCode', 'eq', 'R1')|first %}
