@@ -72,7 +72,7 @@
     - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
     - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
   output: {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
-  walltime: "48:00:00"
+  walltime: "72:00:00"
   cpus: 10
   mem: 40G
   cmd: |

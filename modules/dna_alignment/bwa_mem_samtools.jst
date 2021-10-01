@@ -79,7 +79,7 @@
   after:
     - split_fastq_{{ r1fastq.basename | replace(".", "_") }}
     - split_fastq_{{ r2fastq.basename | replace(".", "_") }}
-  walltime: "48:00:00"
+  walltime: "72:00:00"
   cpus: 10
   mem: 50G
   cmd: |
@@ -195,7 +195,7 @@
   output:
     - {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
     - {{ results_dir }}/stats/{{ sample.name }}.bwa.bam.samtools.markdup.txt
-  walltime: "48:00:00"
+  walltime: "96:00:00"
   cpus: 4
   mem: 16G
   cmd: |

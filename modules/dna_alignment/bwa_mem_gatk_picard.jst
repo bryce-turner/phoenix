@@ -79,7 +79,7 @@
   after:
     - split_fastq_{{ r1fastq.basename | replace(".", "_") }}
     - split_fastq_{{ r2fastq.basename | replace(".", "_") }}
-  walltime: "48:00:00"
+  walltime: "72:00:00"
   cpus: 10
   mem: 40G
   cmd: |
@@ -122,7 +122,7 @@
   tags: [{{ sample.gltype }}, alignment, mark_duplicates, gatk, {{ sample.name }}]
   reset: predecessors
   after-re: chunked_bwa_mem_samtools_view_{{ sample.name }}_.*
-  walltime: "48:00:00"
+  walltime: "72:00:00"
   cpus: 16
   mem: 64G
   cmd: |
