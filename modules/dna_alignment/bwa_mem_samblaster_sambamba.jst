@@ -2,7 +2,7 @@
 # groups.
 #
 #     ? ?
-#   ? -----fastqs--> temp/<sample.name>.bwa.bam
+#   ? -----fastqs--> temp/<sample.name>.{{ aligner }}.bam
 #     ? ?
 #
 
@@ -71,7 +71,7 @@
   input:
     - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R1_merged.fastq.gz
     - {{ temp_dir }}/{{ sample.rglb }}/{{ sample.rglb }}_R2_merged.fastq.gz
-  output: {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
+  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
   walltime: "72:00:00"
   cpus: 10
   mem: 40G
@@ -112,7 +112,7 @@
       --nthreads 9 \
       --tmpdir "{{ temp_dir }}/{{ sample.rglb }}/temp/" \
       /dev/stdin \
-      --out "{{ temp_dir }}/{{ sample.name }}.bwa.md.bam"
+      --out "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam"
 
 {% if sample.gltype == 'genome' %}
   {# shorten to tasks.Genome_alignment_base_recalibration_gatk|default(false) #}

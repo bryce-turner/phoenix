@@ -2,7 +2,7 @@
 # groups.
 #
 #     ? ?
-#   ? -----fastqs--> temp/<sample.name>.bwa.bam
+#   ? -----fastqs--> temp/<sample.name>.{{ aligner }}.bam
 #     ? ?
 #
 
@@ -137,7 +137,7 @@
       -m 3G \
       --threads 9 \
       --output-fmt BAM \
-      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam" \
       -
 
 {% endfor %}
@@ -147,7 +147,7 @@
   tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, {{ sample.name }}]
   reset: predecessors
   after-re: chunked_bwa_mem_samtools_fixmate_{{ sample.name }}_.*
-  output: {{ temp_dir }}/{{ sample.name }}.bwa.bam
+  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam
   walltime: "24:00:00"
   cpus: 8
   mem: 8G
@@ -167,12 +167,12 @@
       -c \
       -f \
       -l 6 \
-      "{{ temp_dir }}/{{ sample.name }}.bwa.bam" \
+      "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam" \
     {% for rgid in sample.read_groups %}
       {% if not loop.last %}
-      "{{ temp_dir }}/{{ rgid }}/"*.bwa.bam \
+      "{{ temp_dir }}/{{ rgid }}/"*.{{ aligner }}.bam \
       {% else %}
-      "{{ temp_dir }}/{{ rgid }}/"*.bwa.bam
+      "{{ temp_dir }}/{{ rgid }}/"*.{{ aligner }}.bam
       {% endif %}
     {% endfor %}
 
@@ -191,10 +191,10 @@
   reset: predecessors
   methods: Duplicate reads for {{ sample.name }} were marked with
     {{ constants.tools.samtools.verbose }} markdup.
-  input: {{ temp_dir }}/{{ sample.name }}.bwa.bam
+  input: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam
   output:
-    - {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
-    - {{ results_dir }}/stats/{{ sample.name }}.bwa.bam.samtools.markdup.txt
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+    - {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt
   walltime: "96:00:00"
   cpus: 4
   mem: 16G
@@ -222,17 +222,17 @@
      -S      Mark supplemenary alignments of duplicates as duplicates (slower)
      -f      Write stats to named file. Implies -s (report stats)
      -T      PREFIX    Write temporary files to PREFIX.samtools.nnnn.nnnn.tmp
-     2>      Stats are output to stderr which is redirected to ".bwa.bam.markdup.txt"
+     2>      Stats are output to stderr which is redirected to ".{{ aligner }}.bam.markdup.txt"
     #}
     samtools markdup \
       -d {{ opt_dup_distance }} \
       -S \
-      -f "{{ results_dir }}/stats/{{ sample.name }}.bwa.bam.samtools.markdup.txt" \
+      -f "{{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt" \
       --threads 4 \
       --write-index \
       -T "{{ temp_dir }}/markdup_temp/{{ sample.name }}" \
-      "{{ temp_dir }}/{{ sample.name }}.bwa.bam" \
-      "{{ temp_dir }}/{{ sample.name }}.bwa.md.bam"
+      "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam" \
+      "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam"
 
 
 {% if sample.gltype == 'genome' %}

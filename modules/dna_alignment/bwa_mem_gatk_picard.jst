@@ -2,7 +2,7 @@
 # groups.
 #
 #     ? ?
-#   ? -----fastqs--> temp/<sample.name>.bwa.bam
+#   ? -----fastqs--> temp/<sample.name>.{{ aligner }}.bam
 #     ? ?
 #
 # This alignment command prefix is shared by all modules using bwa
@@ -112,7 +112,7 @@
       "{{ temp_dir }}/{{ rgid }}/{{ r2fastq.basename }}/{{ chunk_suffix }}" |\
     samtools view \
       --output-fmt BAM \
-      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam" \
       -
 
 {% endfor %}
@@ -142,7 +142,7 @@
     {% for rgid, rg in sample.read_groups.items() %}
     {% for i in range(rg['n_chunks']) %}
     {% set chunk_suffix = '%02d' % i %}
-      --INPUT "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      --INPUT "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam" \
     {% endfor %}
     {% endfor %}
       --METRICS_FILE "{{ results_dir }}/stats/{{ sample.name }}.mdmetrics.txt" \
@@ -160,7 +160,7 @@
   tags: [{{ sample.gltype }}, alignment, SortSam, gatk, {{ sample.name }}]
   reset: predecessors
   after: chunked_gatk_picard_markduplicates_{{ sample.name }}
-  output: {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
+  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
   walltime: "48:00:00"
   cpus: 16
   mem: 64G
@@ -178,7 +178,7 @@
       --CREATE_MD5_FILE true \
       --MAX_RECORDS_IN_RAM 300000 \
       --INPUT "{{ temp_dir }}/{{ sample.name }}.bwa.md-uns.bam" \
-      --OUTPUT "{{ temp_dir }}/{{ sample.name }}.bwa.md.bam"
+      --OUTPUT "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam"
 
     {# Cleanup the tempfiles #}
     {% if not debug %}

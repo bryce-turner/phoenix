@@ -2,7 +2,7 @@
 # groups.
 #
 #     ? ?
-#   ? -----fastqs--> temp/<sample.name>.bwa.bam
+#   ? -----fastqs--> temp/<sample.name>.{{ aligner }}.bam
 #     ? ?
 #
 
@@ -79,7 +79,7 @@
   after:
     - split_fastq_{{ r1fastq.basename | replace(".", "_") }}
     - split_fastq_{{ r2fastq.basename | replace(".", "_") }}
-  output: {{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam
+  output: {{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam
   walltime: "48:00:00"
   cpus: 10
   mem: 32G
@@ -138,7 +138,7 @@
       -m 768M \
       --threads 9 \
       --output-fmt BAM \
-      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam" \
       -
 
 {% endfor %}
@@ -149,9 +149,9 @@
   input:
     {% for i in range(n_chunks) %}
     {% set chunk_suffix = '%02d' % i %}
-    - {{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam
+    - {{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam
     {% endfor %}
-  output: {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.bam
+  output: {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam
   walltime: "24:00:00"
   cpus: 8
   mem: 8G
@@ -171,13 +171,13 @@
       -c \
       -f \
       -l 6 \
-      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.bam" \
+      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam" \
       {% for i in range(n_chunks) %}
       {% set chunk_suffix = '%02d' % i %}
       {% if not loop.last %}
-      "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam" \
       {% else %}
-      "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam"
+      "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam"
       {% endif %}
       {% endfor %}
 
@@ -194,10 +194,10 @@
   reset: predecessors
   methods: Duplicate reads for {{ sample.name }} were marked with
     {{ constants.tools.samtools.verbose }} markdup.
-  input: {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.bam
+  input: {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam
   output:
-    - {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.md.bam
-    - {{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.bwa.bam.samtools.markdup.txt
+    - {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.md.bam
+    - {{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam.samtools.markdup.txt
   walltime: "96:00:00"
   cpus: 4
   mem: 16G
@@ -213,7 +213,7 @@
     # existing temp files before making the directory again.
     #}
     rm -r "{{ temp_dir }}/markdup_temp/{{ sample.name }}_{{ rgid }}" || true
-    rm "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.bwa.bam.samtools.markdup.txt" || true
+    rm "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam.samtools.markdup.txt" || true
     mkdir -p "{{ temp_dir }}/markdup_temp/{{ sample.name }}_{{ rgid }}"
     mkdir -p "{{ temp_dir }}/stats/"
 
@@ -222,17 +222,17 @@
      -S      Mark supplemenary alignments of duplicates as duplicates (slower)
      -f      Write stats to named file. Implies -s (report stats)
      -T      PREFIX    Write temporary files to PREFIX.samtools.nnnn.nnnn.tmp
-     2>      Stats are output to stderr which is redirected to ".bwa.bam.markdup.txt"
+     2>      Stats are output to stderr which is redirected to ".{{ aligner }}.bam.markdup.txt"
     #}
     samtools markdup \
       -d {{ opt_dup_distance }} \
       -S \
-      -f "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.bwa.bam.samtools.markdup.txt" \
+      -f "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam.samtools.markdup.txt" \
       --threads 4 \
       --write-index \
       -T "{{ temp_dir }}/markdup_temp/{{ sample.name }}_{{ rgid }}" \
-      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.bam" \
-      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.md.bam"
+      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam" \
+      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.md.bam"
 
 {% endfor %}
 
@@ -243,12 +243,12 @@
     {{ constants.tools.samtools.verbose }} markdup.
   input:
     {% for rgid in sample.read_groups %}
-    - {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.md.bam
-    - {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.bam.samtools.markdup.txt
+    - {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.md.bam
+    - {{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam.samtools.markdup.txt
     {% endfor %}
   output:
-    - {{ temp_dir }}/{{ sample.name }}.bwa.md.bam
-    - {{ results_dir }}/stats/{{ sample.name }}.bwa.bam.samtools_markdup.txt
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+    - {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup.txt
   walltime: "48:00:00"
   cpus: 8
   mem: 16G
@@ -270,12 +270,12 @@
       -c \
       -f \
       -l 6 \
-      "{{ temp_dir }}/{{ sample.name }}.bwa.md.bam" \
+      "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam" \
     {% for rgid in sample.read_groups %}
       {% if not loop.last %}
-      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.md.bam" \
+      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.md.bam" \
       {% else %}
-      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.bwa.md.bam"
+      "{{ temp_dir }}/{{ sample.name }}_{{ rgid }}.{{ aligner }}.md.bam"
       {% endif %}
     {% endfor %}
 
@@ -288,30 +288,30 @@
     #}
     paste \
       {% for rgid in sample.read_groups %}
-      "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.bwa.bam.samtools.markdup.txt"
+      "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam.samtools.markdup.txt"
       {%- endfor %}
       | head -n -1 | tail -n +2 | sed 's/\t[a-zA-Z :_]\+/+/g' | awk '{ print $NF }' | bc \
-      > {{ temp_dir }}/stats/{{ sample.name }}.bwa.bam.samtools_markdup_merge.txt
+      > {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup_merge.txt
 
     paste \
       {% for rgid in sample.read_groups %}
-      "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.bwa.bam.samtools.markdup.txt"
+      "{{ temp_dir }}/stats/{{ sample.name }}_{{ rgid }}.{{ aligner }}.bam.samtools.markdup.txt"
       {%- endfor %}
       | tail -n1 | sed 's/\t[a-zA-Z :_]\+/\ /g' | cut -d' ' -f2- |\
       awk '{m=$1;for(i=1;i<=NF;i++)if($i>m)m=$i;print m}' \
-      >> {{ temp_dir }}/stats/{{ sample.name }}.bwa.bam.samtools_markdup_merge.txt
+      >> {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup_merge.txt
 
 
     {# Combining the summed values with their naming #}
-    tail -n +2 {{ temp_dir }}/stats/{{ sample.name }}_{{ first_sample_rgid }}.bwa.bam.samtools.markdup.txt |\
+    tail -n +2 {{ temp_dir }}/stats/{{ sample.name }}_{{ first_sample_rgid }}.{{ aligner }}.bam.samtools.markdup.txt |\
       cut -d':' -f1 |\
-      paste - {{ temp_dir }}/stats/{{ sample.name }}.bwa.bam.samtools_markdup_merge.txt |\
+      paste - {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup_merge.txt |\
       sed 's/\t/: /g' \
-      > {{ results_dir }}/stats/{{ sample.name }}.bwa.bam.samtools_markdup.txt
+      > {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup.txt
 
     {# insert COMMAND: into the top of the merged file #}
-    header=$(head -n 1 {{ temp_dir }}/stats/{{ sample.name }}_{{ first_sample_rgid }}.bwa.bam.samtools.markdup.txt)
-    sed -i "1i ${header}" {{ results_dir }}/stats/{{ sample.name }}.bwa.bam.samtools_markdup.txt
+    header=$(head -n 1 {{ temp_dir }}/stats/{{ sample.name }}_{{ first_sample_rgid }}.{{ aligner }}.bam.samtools.markdup.txt)
+    sed -i "1i ${header}" {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools_markdup.txt
 
 
 {% if sample.gltype == 'genome' %}
