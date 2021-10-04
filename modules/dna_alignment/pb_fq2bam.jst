@@ -8,7 +8,6 @@
 
 {% macro fq2bam(sample, opt_dup_distance, aligner) %}
 
-{% set bam %}{{ results_dir }}/{{ sample.name }}.{{ aligner }}.bam{% endset %}
 {% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 {% set results_dir %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 
