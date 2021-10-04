@@ -66,7 +66,7 @@
 
 {% for i in range(n_chunks) %}
 {% set chunk_suffix = '%02d' % i %}
-- name: chunked_bwa_mem_samtools_fixmate_{{ sample.name }}_{{ rgid }}_{{ chunk_suffix }}
+- name: chunked_bwa_mem_samtools_fixmate_{{ sample.name }}_{{ aligner }}_{{ rgid }}_{{ chunk_suffix }}
   tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, {{ sample.name }}]
   reset: predecessors
   after:
@@ -136,7 +136,7 @@
 {% endfor %}
 {% endfor %}
 
-- name: chunked_samtools_merge_rg_bams_{{ sample.name }}
+- name: chunked_samtools_merge_rg_bams_{{ sample.name }}_{{ aligner }}
   tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, {{ sample.name }}]
   reset: predecessors
   after-re: chunked_bwa_mem_samtools_fixmate_{{ sample.name }}_.*
@@ -179,7 +179,7 @@
     {% endif %}
 
 
-- name: samtools_markdup_{{ sample.name }}_bwa
+- name: samtools_markdup_{{ sample.name }}_{{ aligner }}
   tags: [{{ sample.gltype }}, alignment, mark_duplicates, samtools, {{ sample.name }}]
   reset: predecessors
   methods: Duplicate reads for {{ sample.name }} were marked with
