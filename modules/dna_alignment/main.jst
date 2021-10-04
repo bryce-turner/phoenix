@@ -38,6 +38,7 @@
       {% do alignment_style.append('tgen_nomultidup') %}
       {% do alignment_style.append('broad') %}
       {% do alignment_style.append('ashion') %}
+      {% do alignment_style.append('parabricks') %}
     {% else %}
       {% do alignment_style.append(dnaAlignmentStyle|default('tgen')|lower) %}
     {% endif %}
@@ -63,6 +64,9 @@
     {% endif %}
     {% if 'ashion' in alignment_style %}
       {{- bwa_mem_blaster_bamba(sample, aligner='ashion') }}
+    {% endif %}
+    {% if 'parabricks' in alignment_style %}
+      {{- fq2bam(sample, opt_dup_distance, aligner='parabricks') }}
     {% endif %}
 
   {% endfor %}
