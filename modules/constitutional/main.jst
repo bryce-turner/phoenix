@@ -18,7 +18,9 @@
 {% set alignment_style = [] %}
 {% if dnaAlignmentStyle == 'all' %}
   {% do alignment_style.append('pcrfree') %}
+  {% do alignment_style.append('pcrfree_nomultidup') %}
   {% do alignment_style.append('tgen') %}
+  {% do alignment_style.append('tgen_nomultidup') %}
   {% do alignment_style.append('broad') %}
   {% do alignment_style.append('ashion') %}
 {% else %}

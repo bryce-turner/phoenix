@@ -33,7 +33,9 @@
     {% set alignment_style = [] %}
     {% if dnaAlignmentStyle == 'all' %}
       {% do alignment_style.append('pcrfree') %}
+      {% do alignment_style.append('pcrfree_nomultidup') %}
       {% do alignment_style.append('tgen') %}
+      {% do alignment_style.append('tgen_nomultidup') %}
       {% do alignment_style.append('broad') %}
       {% do alignment_style.append('ashion') %}
     {% else %}
@@ -50,9 +52,11 @@
     {# PCRfree will not have any pcr cycles #}
     {% if 'pcrfree' in alignment_style %}
       {{- bwa_mem2_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='pcrfree') }}
+      {{- bwa_mem2_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='pcrfree_nomultidup', nomultidup=true) }}
     {% endif %}
     {% if 'tgen' in alignment_style %}
       {{- bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='tgen') }}
+      {{- bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='tgen_nomultidup', nomultidup=true) }}
     {% endif %}
     {% if 'broad' in alignment_style %}
       {{- bwa_mem_gatk_picard_chunked(sample, reads_per_chunk, opt_dup_distance, aligner='broad') }}

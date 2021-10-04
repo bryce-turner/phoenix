@@ -9,7 +9,7 @@
 
 # This macro splits large fastqs into chunks prior to aligning.
 # If fastq is less than reads_per_chunk (48000000) then one chunk is made.
-{% macro bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner) %}
+{% macro bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner, nomultidup=false) %}
 
 {% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 {% set results_dir %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
@@ -195,7 +195,7 @@
     set -eu
     set -o pipefail
 
-    module load {{ constants.tools.samtools.module }}
+    module load singularity/3.7.1-phoenix
 
     {#
     # If this task was interrupted previously, temp files may exist
@@ -217,7 +217,10 @@
      -T      PREFIX    Write temporary files to PREFIX.samtools.nnnn.nnnn.tmp
      2>      Stats are output to stderr which is redirected to ".{{ aligner }}.bam.markdup.txt"
     #}
-    samtools markdup \
+    singularity exec /packages/easy-build/containers/samtools-1.13.sif samtools markdup \
+      {% if nomultidup %}
+      --no-multi-dup \
+      {% endif %}
       -d {{ opt_dup_distance }} \
       -S \
       -f "{{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt" \
