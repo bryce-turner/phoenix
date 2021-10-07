@@ -295,13 +295,13 @@
       {%- endfor %}
       | tail -n1 | sed 's/\t[a-zA-Z :_]\+/\ /g' | cut -d' ' -f2- |\
       awk '{m=$1;for(i=1;i<=NF;i++)if($i>m)m=$i;print m}' \
-      >> {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup_merge.txt
+      >> {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.merge.txt
 
 
     {# Combining the summed values with their naming #}
     tail -n +2 {{ temp_dir }}/stats/{{ sample.name }}_{{ first_sample_rgid }}.{{ aligner }}.bam.samtools.markdup.txt |\
       cut -d':' -f1 |\
-      paste - {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup_merge.txt |\
+      paste - {{ temp_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.merge.txt |\
       sed 's/\t/: /g' \
       > {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt
 
