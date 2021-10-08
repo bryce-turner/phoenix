@@ -53,6 +53,9 @@
     {% endfor %}
     {% if tasks.Genome_alignment_base_recalibration_gatk or tasks.Exome_alignment_base_recalibration_gatk | default(false) %}
     --out-recal-file {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.recal_data.table \
+    {% for vcf in constants.phoenix.gatk_known_sites %}
+    --known-sites "{{ vcf }}" \
+    {% endfor %}
     {% endif %}
     --out-duplicate-metrics "{{ results_dir }}/stats/{{ sample.name }}.mdmetrics.txt" \
     --optical-duplicate-pixel-distance {{ opt_dup_distance }} \
