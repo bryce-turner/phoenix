@@ -7,6 +7,7 @@
 {% from 'utilities/remove_files.jst' import remove_files with context %}
 {% from 'modules/dna_alignment/gatk_baserecalibration.jst' import nobaserecalibration with context %}
 {% from 'utilities/bam_to_cram.jst' import bam_to_cram with context %}
+{% from 'utilities/read_group_line.jst' import read_group_line %}
 {% from 'modules/qc/main.jst' import bam_qc with context %}
 
 {% macro fq2bam(sample, opt_dup_distance, aligner) %}
@@ -65,23 +66,25 @@
   input:
     - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
     - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.recal_data.table
-  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam
+  output:
+    - {{ results_dir }}/{{ sample.name }}.{{ aligner }}.bam
+    - {{ results_dir }}/{{ sample.name }}.{{ aligner }}.bam.bai
   walltime: "24:00:00"
   sbatch_args: ['-p', 'gpu', '--exclusive']
   cmd: |
     set -eu
     set -o pipefail
 
-    rm -r "{{ temp_dir }}/markdup_temp/" || true
-    mkdir -p "{{ temp_dir }}/markdup_temp/"
-
     module load {{ constants.tools.parabricks.module }}
+    module load {{ constants.tools.samtools.module }}
 
     pbrun applybqsr \
       --ref "{{ constants.phoenix.bwa_index }}" \
       --in-bam {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam \
       --in-recal-file {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.recal_data.table  \
       --out-bam {{ results_dir }}/{{ sample.name }}.{{ aligner }}.bam
+
+    samtools index -@ 10 "{{ results_dir }}/{{ sample.name }}.{{ aligner }}.bam"
 
 {% else %}
   {{- nobaserecalibration(sample, aligner) }}
