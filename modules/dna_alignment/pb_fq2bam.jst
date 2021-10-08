@@ -5,9 +5,8 @@
 # This alignment command prefix is shared by all modules using bwa
 {% from 'utilities/read_group_line.jst' import read_group_line with context %}
 {% from 'utilities/remove_files.jst' import remove_files with context %}
-{% from 'modules/dna_alignment/gatk_baserecalibration.jst' import baserecalibration, nobaserecalibration with context %}
+{% from 'modules/dna_alignment/gatk_baserecalibration.jst' import nobaserecalibration with context %}
 {% from 'utilities/bam_to_cram.jst' import bam_to_cram with context %}
-{% from 'utilities/read_group_line.jst' import read_group_line %}
 {% from 'modules/qc/main.jst' import bam_qc with context %}
 
 {% macro fq2bam(sample, opt_dup_distance, aligner) %}
@@ -25,7 +24,11 @@
     - temp/fastqs/{{ r1fastq.basename }}
     - temp/fastqs/{{ r2fastq.basename }}
   {% endfor %}
-  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam
+  output:
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+    {% if tasks.Genome_alignment_base_recalibration_gatk or tasks.Exome_alignment_base_recalibration_gatk | default(false) %}
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.recal_data.table
+    {% endif %}
   walltime: "24:00:00"
   sbatch_args: ['-p', 'gpu', '--exclusive']
   cmd: |
@@ -47,23 +50,41 @@
       {% set r2fastq = rg.data_files|selectattr('fastqCode', 'eq', 'R2')|first %}
       --in-fq "temp/fastqs/{{ r1fastq.basename }}" "temp/fastqs/{{ r2fastq.basename }}" "{{ read_group_line(rg, format='bwa') }}" \
     {% endfor %}
+    {% if tasks.Genome_alignment_base_recalibration_gatk or tasks.Exome_alignment_base_recalibration_gatk | default(false) %}
+    --out-recal-file {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.recal_data.table \
+    {% endif %}
     --out-duplicate-metrics "{{ results_dir }}/stats/{{ sample.name }}.mdmetrics.txt" \
     --optical-duplicate-pixel-distance {{ opt_dup_distance }} \
-    --out-bam "{{ results_dir }}/{{ sample.name }}.{{ aligner }}.bam"
+    --out-bam "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam"
 
-{% if sample.gltype == 'genome' %}
-  {# shorten to tasks.Genome_alignment_base_recalibration_gatk|default(false) #}
-  {% if tasks.Genome_alignment_base_recalibration_gatk is defined and tasks.Genome_alignment_base_recalibration_gatk %}
-    {{- baserecalibration(sample, aligner) }}
-  {% else %}
-    {{- nobaserecalibration(sample, aligner) }}
-  {% endif %}
-{% elif sample.gltype == 'exome' %}
-  {% if tasks.Exome_alignment_base_recalibration_gatk is defined and tasks.Exome_alignment_base_recalibration_gatk %}
-    {{- baserecalibration(sample, aligner) }}
-  {% else %}
-    {{- nobaserecalibration(sample, aligner) }}
-  {% endif %}
+{% if tasks.Genome_alignment_base_recalibration_gatk or tasks.Exome_alignment_base_recalibration_gatk | default(false) %}
+
+- name: pbrun_applybqsr_{{ sample.name }}_{{ aligner }}
+  tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, {{ sample.name }}]
+  reset: predecessors
+  input:
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.recal_data.table
+  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam
+  walltime: "24:00:00"
+  sbatch_args: ['-p', 'gpu', '--exclusive']
+  cmd: |
+    set -eu
+    set -o pipefail
+
+    rm -r "{{ temp_dir }}/markdup_temp/" || true
+    mkdir -p "{{ temp_dir }}/markdup_temp/"
+
+    module load {{ constants.tools.parabricks.module }}
+
+    pbrun applybqsr \
+      --ref "{{ constants.phoenix.bwa_index }}" \
+      --in-bam {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam \
+      --in-recal-file {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.recal_data.table  \
+      --out-bam {{ results_dir }}/{{ sample.name }}.{{ aligner }}.bam
+
+{% else %}
+  {{- nobaserecalibration(sample, aligner) }}
 {% endif %}
 
 {{- bam_to_cram(sample, aligner) }}
