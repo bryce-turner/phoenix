@@ -266,6 +266,7 @@
       -c \
       -f \
       -l 6 \
+      --write-index \
       "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam" \
     {% for rgid in sample.read_groups %}
       {% if not loop.last %}
