@@ -55,9 +55,10 @@
         {% if tasks.Genome_constitutional_cna_caller_ichor|default(true) %}
            {{- ichorcna(sample, aligner, taskPrefix=taskPrefix) }}
         {% endif %}
-        {% if tasks[taskPrefix+"_constitutional_structural_caller_expansion_hunter"]|default(true) %}
-           {{- expansion_hunter(sample, aligner) }}
-        {% endif %}
+    {% endif %}
+
+    {% if tasks[taskPrefix+"_constitutional_snp_indel_caller_expansion_hunter"]|default(true) %}
+       {{- expansion_hunter(sample, aligner='bwa') }}
     {% endif %}
 
     {%- if sample.subGroup|lower != 'tumor' %}
