@@ -27,7 +27,7 @@
         ${TRUTH_VCF} \
         {{ vcf }} \
         --false-positives ${CONFIDENT_REGION_BED} \
-        --report-prefix {{ toolname }}_{{ aligner }}_{{ sample.name }} \
+        --report-prefix {{ results_dir }}/{{ toolname }}_{{ aligner }}_{{ sample.name }} \
         --threads 8
 
 {% endmacro %}
