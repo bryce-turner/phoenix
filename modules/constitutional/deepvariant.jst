@@ -1,11 +1,13 @@
 {% from 'modules/annotation/main.jst' import annotate_vcfs with context %}
+{% from 'utilities/remove_files.jst' import remove_files with context %}
 {% from 'utilities/vcf_stats.jst' import vcf_stats with context %}
+{% from 'utilities/happy.jst' import happy with context %}
 
 {%- macro deepvariant(sample, aligner='bwa', taskPrefix='Genome') %}
 
 {%- set bam %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}/{{ sample.name }}.{{ aligner }}.bam{% endset %}
-{%- set temp_dir %}temp/{{ sample.gltype }}/constitutional_variant_calls/deepvariant/{{ sample.name }}_{{ aligner }}{% endset %}
-{%- set results_dir %}{{ sample.gltype }}/constitutional_variant_calls/deepvariant/{{ sample.name }}{% endset %}
+{%- set temp_dir %}temp/{{ sample.gltype }}/constitutional_variant_calls/deepvariant/{{ aligner }}/{{ sample.name }}{% endset %}
+{%- set results_dir %}{{ sample.gltype }}/constitutional_variant_calls/deepvariant/{{ aligner }}/{{ sample.name }}{% endset %}
 {%- set all_vcf %}{{ results_dir }}/{{ sample.name }}.{{ aligner }}.deepvariant.all.vcf.gz{% endset %}
 {%- set pass_vcf %}{{ results_dir }}/{{ sample.name }}.{{ aligner }}.deepvariant.pass.vcf.gz{% endset %}
 
@@ -152,8 +154,12 @@
 
     bcftools index --tbi --force "{{ pass_vcf }}"
 
+{% set task %}deepvariant_postprocess_variants_{{ sample.name }}_{{ aligner }}{% endset %}
+{% set directory %}{{ temp_dir }}{% endset %}
+{{- remove_files(directory,none,task) }}
 {{- annotate_vcfs(sample, temp_dir, results_dir, pass_vcf, taskPrefix, aligner, 'deepvariant', 'constitutional', 'snp_indel_caller') }}
 {{- vcf_stats(pass_vcf, results_dir) }}
 {{- vcf_stats(all_vcf, results_dir) }}
+{{- happy('deepvariant', sample, pass_vcf, aligner) }}
 
 {% endmacro %}

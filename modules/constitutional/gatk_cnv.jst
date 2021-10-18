@@ -8,8 +8,8 @@
 {% set cnvPon %}{{ normal_temp }}/{{ normal.gatkCnvPon | basename }}{% endset %}
 {% set sample_bam %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}/{{ sample.name }}.{{ aligner }}.bam{% endset %}
 {% set cnvSnps %}{{ normal_temp }}/{{ normal.gatkCnvSnps | basename }}{% endset %}
-{% set temp_dir %}temp/{{ sample.gltype }}/constitutional_copy_number/gatk/{{ sample.name }}_{{ aligner }}{% endset %}
-{% set results_dir %}{{ sample.gltype }}/constitutional_copy_number/gatk/{{ sample.name }}{% endset %}
+{% set temp_dir %}temp/{{ sample.gltype }}/constitutional_copy_number/gatk/{{ aligner }}/{{ sample.name }}{% endset %}
+{% set results_dir %}{{ sample.gltype }}/constitutional_copy_number/gatk/{{ aligner }}/{{ sample.name }}{% endset %}
 
 {% if wesAssayToPair is defined and normal.gatkExomeCnvSnps is defined %}
   {% set exomeCnvSnps %}{{ normal_temp }}/{{ normal.gatkExomeCnvSnps | basename }}{% endset %}

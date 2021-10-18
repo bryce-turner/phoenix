@@ -1,18 +1,19 @@
-# Aligns fastqs for a sample using BWA MEM. Samples may have multiple read
-# groups.
-#
-#     ? ?
-#   ? -----fastqs--> temp/<sample.name>.bwa.bam
-#     ? ?
-#
 
 # This alignment command prefix is shared by all modules using bwa
 {% from 'utilities/read_group_line.jst' import read_group_line with context %}
 {% from 'utilities/remove_files.jst' import remove_files with context %}
+{% from 'modules/dna_alignment/gatk_baserecalibration.jst' import baserecalibration, nobaserecalibration with context %}
+{% from 'utilities/bam_to_cram.jst' import bam_to_cram with context %}
+{% from 'utilities/read_group_line.jst' import read_group_line %}
+{% from 'modules/qc/main.jst' import bam_qc with context %}
 
 # This macro splits large fastqs into chunks prior to aligning.
 # If fastq is less than reads_per_chunk (48000000) then one chunk is made.
-{% macro bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance) %}
+{% macro bwa_mem_samtools_chunked(sample, reads_per_chunk, opt_dup_distance, aligner, nomultidup=false) %}
+
+{% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
+{% set results_dir %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
+
 {% for rgid, rg in sample.read_groups.items() %}
 {% set r1fastq = rg.data_files|selectattr('fastqCode', 'eq', 'R1')|first %}
 {% set r2fastq = rg.data_files|selectattr('fastqCode', 'eq', 'R2')|first %}
@@ -23,7 +24,7 @@
 {% if n_chunks > 99 %}{{ raise('ValueError', 'Too many chunks!') }}{% endif %}
 
 {% for fastq in [r1fastq, r2fastq] %}
-- name: split_fastq_{{ fastq.basename | replace(".", "_") }}
+- name: split_fastq_{{ aligner }}_{{ fastq.basename | replace(".", "_") }}
   tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, split, {{ sample.name }}]
   reset: predecessors
   input:
@@ -42,8 +43,8 @@
     {#
       This comment is here for protect render spacing, do not remove.
     #}
-    rm -r "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/" || true
-    mkdir -p "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/"
+    rm -r "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/" || true
+    mkdir -p "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/"
 
     zcat "temp/fastqs/{{ fastq.basename }}" |\
       split \
@@ -51,9 +52,9 @@
         --suffix-length 2 \
         --lines {{ n_lines }} \
         - \
-        "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/"
+        "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/"
 
-    N_CREATED=$(ls "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ fastq.basename }}/" | wc -l)
+    N_CREATED=$(ls "{{ temp_dir }}/{{ rgid }}/{{ fastq.basename }}/" | wc -l)
 
     if [[ ${N_CREATED} -ne {{ n_chunks }} ]]
     then
@@ -65,13 +66,13 @@
 
 {% for i in range(n_chunks) %}
 {% set chunk_suffix = '%02d' % i %}
-- name: chunked_bwa_mem_samtools_fixmate_{{ sample.name }}_{{ rgid }}_{{ chunk_suffix }}
+- name: chunked_bwa_mem_samtools_fixmate_{{ sample.name }}_{{ aligner }}_{{ rgid }}_{{ chunk_suffix }}
   tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, {{ sample.name }}]
   reset: predecessors
   after:
-    - split_fastq_{{ r1fastq.basename | replace(".", "_") }}
-    - split_fastq_{{ r2fastq.basename | replace(".", "_") }}
-  walltime: "48:00:00"
+    - split_fastq_{{ aligner }}_{{ r1fastq.basename | replace(".", "_") }}
+    - split_fastq_{{ aligner }}_{{ r2fastq.basename | replace(".", "_") }}
+  walltime: "72:00:00"
   cpus: 10
   mem: 50G
   cmd: |
@@ -86,8 +87,8 @@
     # that will cause errors with samtools sort. Here, we purge any
     # existing temp files before making the directory again.
     #}
-    rm -r "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ chunk_suffix }}_st_sort_temp/" || true
-    mkdir -p "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ chunk_suffix }}_st_sort_temp/"
+    rm -r "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}_st_sort_temp/" || true
+    mkdir -p "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}_st_sort_temp/"
 
     {# No long options available for the following:
      bwa mem
@@ -116,30 +117,30 @@
       -t 9 \
       -R "{{ read_group_line(rg, format='bwa') }}" \
       "{{ constants.phoenix.bwa_index }}" \
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ r1fastq.basename }}/{{ chunk_suffix }}" \
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ r2fastq.basename }}/{{ chunk_suffix }}" |\
+      "{{ temp_dir }}/{{ rgid }}/{{ r1fastq.basename }}/{{ chunk_suffix }}" \
+      "{{ temp_dir }}/{{ rgid }}/{{ r2fastq.basename }}/{{ chunk_suffix }}" |\
     samtools fixmate \
       --threads 1 \
       -m \
       - \
       - |\
     samtools sort \
-      -T "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ chunk_suffix }}_st_sort_temp/{{ chunk_suffix }}" \
+      -T "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}_st_sort_temp/{{ chunk_suffix }}" \
       -l 2 \
       -m 3G \
       --threads 9 \
       --output-fmt BAM \
-      -o "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/{{ chunk_suffix }}.bwa.bam" \
+      -o "{{ temp_dir }}/{{ rgid }}/{{ chunk_suffix }}.{{ aligner }}.bam" \
       -
 
 {% endfor %}
 {% endfor %}
 
-- name: chunked_samtools_merge_rg_bams_{{ sample.name }}
+- name: chunked_samtools_merge_rg_bams_{{ sample.name }}_{{ aligner }}
   tags: [{{ sample.gltype }}, alignment, dna_alignment, bwa, {{ sample.name }}]
   reset: predecessors
   after-re: chunked_bwa_mem_samtools_fixmate_{{ sample.name }}_.*
-  output: temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.bam
+  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam
   walltime: "24:00:00"
   cpus: 8
   mem: 8G
@@ -159,12 +160,12 @@
       -c \
       -f \
       -l 6 \
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.bam" \
+      "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam" \
     {% for rgid in sample.read_groups %}
       {% if not loop.last %}
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/"*.bwa.bam \
+      "{{ temp_dir }}/{{ rgid }}/"*.{{ aligner }}.bam \
       {% else %}
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/"*.bwa.bam
+      "{{ temp_dir }}/{{ rgid }}/"*.{{ aligner }}.bam
       {% endif %}
     {% endfor %}
 
@@ -173,37 +174,37 @@
     #}
     {% if not debug %}
     {% for rgid in sample.read_groups %}
-    rm -r "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ rgid }}/"
+    rm -r "{{ temp_dir }}/{{ rgid }}/"
     {% endfor %}
     {% endif %}
 
 
-- name: samtools_markdup_{{ sample.name }}_bwa
+- name: samtools_markdup_{{ sample.name }}_{{ aligner }}
   tags: [{{ sample.gltype }}, alignment, mark_duplicates, samtools, {{ sample.name }}]
   reset: predecessors
   methods: Duplicate reads for {{ sample.name }} were marked with
     {{ constants.tools.samtools.verbose }} markdup.
-  input: temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.bam
+  input: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam
   output:
-    - temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md.bam
-    - {{ sample.gltype }}/alignment/bwa/{{ sample.name }}/stats/{{ sample.name }}.bwa.bam.samtools.markdup.txt
-  walltime: "48:00:00"
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+    - {{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt
+  walltime: "96:00:00"
   cpus: 4
   mem: 16G
   cmd: |
     set -eu
     set -o pipefail
 
-    module load {{ constants.tools.samtools.module }}
+    module load singularity/3.7.1-phoenix
 
     {#
     # If this task was interrupted previously, temp files may exist
     # that will cause errors with samtools markdup. Here, we purge any
     # existing temp files before making the directory again.
     #}
-    rm -r "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/markdup_temp/" || true
-    mkdir -p "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/markdup_temp/"
-    mkdir -p "{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/stats/"
+    rm -r "{{ temp_dir }}/markdup_temp/" || true
+    mkdir -p "{{ temp_dir }}/markdup_temp/"
+    mkdir -p "{{ results_dir }}/stats/"
 
     {#
     # Choose an optical distance based on sequencer
@@ -214,16 +215,39 @@
      -S      Mark supplemenary alignments of duplicates as duplicates (slower)
      -f      Write stats to named file. Implies -s (report stats)
      -T      PREFIX    Write temporary files to PREFIX.samtools.nnnn.nnnn.tmp
-     2>      Stats are output to stderr which is redirected to ".bwa.bam.markdup.txt"
+     2>      Stats are output to stderr which is redirected to ".{{ aligner }}.bam.markdup.txt"
     #}
-    samtools markdup \
+    singularity exec /packages/easy-build/containers/samtools-1.13.sif samtools markdup \
+      {% if nomultidup %}
+      --no-multi-dup \
+      {% endif %}
       -d {{ opt_dup_distance }} \
       -S \
-      -f "{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/stats/{{ sample.name }}.bwa.bam.samtools.markdup.txt" \
+      -f "{{ results_dir }}/stats/{{ sample.name }}.{{ aligner }}.bam.samtools.markdup.txt" \
       --threads 4 \
       --write-index \
-      -T "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/markdup_temp/{{ sample.name }}" \
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.bam" \
-      "temp/{{ sample.gltype }}/alignment/bwa/{{ sample.name }}/{{ sample.name }}.bwa.md.bam"
+      -T "{{ temp_dir }}/markdup_temp/{{ sample.name }}" \
+      "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.bam" \
+      "{{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam"
+
+
+{% if sample.gltype == 'genome' %}
+  {# shorten to tasks.Genome_alignment_base_recalibration_gatk|default(false) #}
+  {% if tasks.Genome_alignment_base_recalibration_gatk is defined and tasks.Genome_alignment_base_recalibration_gatk %}
+    {{- baserecalibration(sample, aligner) }}
+  {% else %}
+    {{- nobaserecalibration(sample, aligner) }}
+  {% endif %}
+{% elif sample.gltype == 'exome' %}
+  {% if tasks.Exome_alignment_base_recalibration_gatk is defined and tasks.Exome_alignment_base_recalibration_gatk %}
+    {{- baserecalibration(sample, aligner) }}
+  {% else %}
+    {{- nobaserecalibration(sample, aligner) }}
+  {% endif %}
+{% endif %}
+
+{{- bam_to_cram(sample, aligner) }}
+
+{{- bam_qc(sample, aligner) }}
 
 {% endmacro %}
