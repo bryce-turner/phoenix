@@ -153,7 +153,9 @@
   tags: [{{ sample.gltype }}, alignment, SortSam, gatk, {{ sample.name }}]
   reset: predecessors
   after: chunked_gatk_picard_markduplicates_{{ sample.name }}
-  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+  output:
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bai
   walltime: "48:00:00"
   cpus: 16
   mem: 64G

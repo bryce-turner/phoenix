@@ -6,11 +6,36 @@
 {% set temp_dir %}temp/{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 {% set results_dir %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 
+{% if aligner in ['tgen', 'tgen_nomultidup', 'pcrfree', 'pcrfree_nomultidup'] %}
+- name: baserecalibration_index_{{ sample.name }}_{{ aligner }}
+  tags: [{{ sample.gltype }}, alignment, base_recalibration, gatk, {{ sample.name }}]
+  input: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+  output: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bai
+  walltime: "4:00:00"
+  cpus: 4
+  mem: 16G
+  cmd: |
+    set -eu
+    set -o pipefail
+
+    module load {{ constants.tools.gatk.module }}
+
+    rm {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam.csi
+
+    gatk \
+      --java-options "-Xmx14G" \
+      BuildBamIndex \
+      -I {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+
+{% endif %}
+
 {% for batch in constants.phoenix.sequence_groupings %}
 - name: baserecalibration_table_{{ sample.name }}_{{ aligner }}_{{ loop.index }}
   tags: [{{ sample.gltype }}, alignment, base_recalibration, gatk, {{ sample.name }}]
   reset: predecessors
-  input: {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+  input:
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bam
+    - {{ temp_dir }}/{{ sample.name }}.{{ aligner }}.md.bai
   walltime: "4:00:00"
   cpus: 4
   mem: 16G
