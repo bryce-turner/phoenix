@@ -1,6 +1,5 @@
 
 {% macro md5sum_bam_cram(sample, aligner='bwa') %}
-{% if cram|default(true) %}
 {% set file_path %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}{% endset %}
 
 - name: md5sum_bam_cram_{{ sample.name }}_{{ aligner }}
@@ -38,7 +37,5 @@
     md5sum {{ sample.name }}.{{ aligner }}.bam > {{ sample.name }}.{{ aligner }}.bam.md5
     md5sum {{ sample.name }}.{{ aligner }}.bam.bai > {{ sample.name }}.{{ aligner }}.bam.bai.md5
     {% endif %}
-
-{% endif %}
 
 {% endmacro %}

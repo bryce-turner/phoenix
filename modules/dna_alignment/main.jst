@@ -58,14 +58,13 @@
     {% endif %}
 
     {% if sample.gltype == 'genome' %}
-      {# shorten to tasks.Genome_alignment_base_recalibration_gatk|default(false) #}
-      {% if tasks.Genome_alignment_base_recalibration_gatk is defined and tasks.Genome_alignment_base_recalibration_gatk %}
+      {% if tasks.Genome_alignment_base_recalibration_gatk|default(false) %}
         {{- baserecalibration(sample, aligner='bwa') }}
       {% else %}
         {{- nobaserecalibration(sample, aligner='bwa') }}
       {% endif %}
     {% elif sample.gltype == 'exome' %}
-      {% if tasks.Exome_alignment_base_recalibration_gatk is defined and tasks.Exome_alignment_base_recalibration_gatk %}
+      {% if tasks.Exome_alignment_base_recalibration_gatk|default(false) %}
         {{- baserecalibration(sample, aligner='bwa') }}
       {% else %}
         {{- nobaserecalibration(sample, aligner='bwa') }}
@@ -73,7 +72,7 @@
     {% endif %}
 
     {{- bam_to_cram(sample, aligner='bwa') }}
-
+    {{- md5sum_bam_cram(sample, aligner='bwa') }}
     {{- bam_qc(sample, aligner='bwa') }}
 
   {% endfor %}

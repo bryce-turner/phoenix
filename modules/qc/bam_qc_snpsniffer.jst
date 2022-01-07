@@ -39,7 +39,7 @@
   {% endif %}
 {% endfor %}
 
-{% if snpsniffer_list | length > 1 %}
+{% if snpsniffer_list | length >= 1 %}
 - name: snpsniffer_summary
   input:
     {% for result in snpsniffer_list %}
