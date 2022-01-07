@@ -1,0 +1,33 @@
+{% macro happy(toolname, sample, vcf, aligner) %}
+
+{%- set results_dir %}{{ sample.gltype }}/constitutional_variant_calls/happy/{{ toolname }}/{{ aligner }}/{{ sample.name }}{% endset %}
+
+- name: happy_{{ toolname }}_{{ sample.name }}_{{ aligner }}
+  tags: [{{ sample.gltype}}, constitutional, snp_indel_caller, {{ sample.name }}]
+  input:
+    - {{ vcf }}
+  cpus: 8
+  mem: 16G
+  walltime: "24:00:00"
+  cmd: |
+    set -eu
+    set -o pipefail
+
+    mkdir -p {{ results_dir }}
+
+    module load hap.py/0.3.9_wRTG
+
+    TRUTH_VCF=/home/tgenref/homo_sapiens/control_files/giab/vcf/NA12878_HG001_NISTv3.3.2_GRCh38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_PGandRTGphasetransfer.vcf.gz
+    CONFIDENT_REGION_BED=/home/tgenref/homo_sapiens/control_files/giab/vcf/NA12878_HG001_NISTv3.3.2_GRCh38/HG001_GRCh38_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-10X-SOLID_CHROM1-X_v.3.3.2_highconf_nosomaticdel_noCENorHET7.bed.gz
+    REFERENCE_GENOME_FASTA={{ constants.phoenix.reference_fasta }}
+
+    export HGREF=${REFERENCE_GENOME_FASTA}
+
+    hap.py \
+        ${TRUTH_VCF} \
+        {{ vcf }} \
+        --false-positives ${CONFIDENT_REGION_BED} \
+        --report-prefix {{ results_dir }}/{{ toolname }}_{{ aligner }}_{{ sample.name }} \
+        --threads 8
+
+{% endmacro %}

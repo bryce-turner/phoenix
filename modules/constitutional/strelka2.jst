@@ -1,19 +1,20 @@
 {% from 'modules/annotation/main.jst' import annotate_vcfs with context %}
 {% from 'utilities/remove_files.jst' import remove_files with context %}
 {% from 'utilities/vcf_stats.jst' import vcf_stats with context %}
+{% from 'utilities/happy.jst' import happy with context %}
 
 {%- macro strelka2_constitutional(sample, aligner='bwa', taskPrefix='Genome') %}
 
 {%- set bam %}{{ sample.gltype }}/alignment/{{ aligner }}/{{ sample.name }}/{{ sample.name }}.{{ aligner }}.bam{% endset %}
-{%- set indel_candidates %}{{ sample.gltype }}/constitutional_structural_calls/manta/{{ sample.name }}/{{ sample.name }}.{{ aligner }}.manta.candidateSmallIndels.vcf.gz{% endset %}
-{%- set temp_dir %}temp/{{ sample.gltype }}/constitutional_variant_calls/strelka2/{{ sample.name }}_{{ aligner }}{% endset %}
-{%- set results_dir %}{{ sample.gltype }}/constitutional_variant_calls/strelka2/{{ sample.name }}{% endset %}
+{%- set indel_candidates %}{{ sample.gltype }}/constitutional_structural_calls/manta/{{ aligner }}/{{ sample.name }}/{{ sample.name }}.{{ aligner }}.manta.candidateSmallIndels.vcf.gz{% endset %}
+{%- set temp_dir %}temp/{{ sample.gltype }}/constitutional_variant_calls/strelka2/{{ aligner }}/{{ sample.name }}{% endset %}
+{%- set results_dir %}{{ sample.gltype }}/constitutional_variant_calls/strelka2/{{ aligner }}/{{ sample.name }}{% endset %}
 {%- set all_vcf %}{{ results_dir }}/{{ sample.name }}.{{ aligner }}.strelka2.all.vcf.gz{% endset %}
 {%- set pass_vcf %}{{ results_dir }}/{{ sample.name }}.{{ aligner }}.strelka2.pass.vcf.gz{% endset %}
 
 - name: strelka2_{{ sample.name }}_{{ aligner }}
   tags: [{{ sample.gltype}}, constitutional, snp_indel_caller, strelka2, {{ sample.name }}]
-  methods: > 
+  methods: >
     Constitutional variants for {{ sample.name }} ({{ aligner }}) were called with
     {{ constants.tools.strelka.verbose }}.
   input:
@@ -64,7 +65,7 @@
     tabix -f -p bed "${STRELKA_BED}.gz"
 
     {#
-    # Some settings are only configurable via an ini file. Here 
+    # Some settings are only configurable via an ini file. Here
     # we generate this ini file and save it to the run dir.
     #}
     STRELKA_CONFIG="{{ temp_dir }}/config.ini"
@@ -141,5 +142,6 @@
 {{- annotate_vcfs(sample, temp_dir, results_dir, pass_vcf, taskPrefix, aligner, 'strelka2', 'constitutional', 'snp_indel_caller' ) }}
 {{- vcf_stats(pass_vcf, results_dir) }}
 {{- vcf_stats(all_vcf, results_dir) }}
+{{- happy('strelka2', sample, pass_vcf, aligner) }}
 
 {% endmacro %}
